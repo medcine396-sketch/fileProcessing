@@ -22,7 +22,7 @@ public class DirectoryWatcher {
         System.out.println("Watcher tick " + LocalTime.now());
         // 只在晚上 6 点～10 点运行
         LocalTime now = LocalTime.now();
-        if (now.isBefore(LocalTime.of(9, 0)) || now.isAfter(LocalTime.of(22, 0))) {
+        if (now.isBefore(LocalTime.of(9, 0)) || now.isAfter(LocalTime.of(21, 0))) {
             return; // 不在时间段就不工作
         }
 
