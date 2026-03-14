@@ -29,6 +29,12 @@ public class PdfGeneratorService {
 
     private static final String OUTPUT_DIR = "C:/Users/Selina/Desktop/outbound";
 
+    private final EmailService emailService;
+
+    public PdfGeneratorService(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
     /**
      * 为每个客户记录生成PDF账单
      */
@@ -48,6 +54,38 @@ public class PdfGeneratorService {
             
             generateSinglePdf(record, pdfFile);
             System.out.println("已生成PDF账单: " + pdfFile.getAbsolutePath());
+        }
+    }
+
+    /**
+     * 为每个客户生成 PDF 后，立即发送账单邮件
+     * （可供批处理编排层调用，保证“生成后自动邮件发送”能力）
+     */
+    public void generatePdfBillsAndSendEmail(List<CustomerRecord> records, String batchId) throws IOException {
+        // 复用原有 PDF 生成逻辑
+        File outputDir = new File(OUTPUT_DIR);
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
+
+        for (CustomerRecord record : records) {
+            String dateForFile = formatDateForFileName(record.getStatementDate());
+            String pdfFileName = String.format("BILL_%s_%s.pdf",
+                    record.getAccountNumber(),
+                    dateForFile);
+            File pdfFile = new File(outputDir, pdfFileName);
+
+            // 1. 生成 PDF
+            generateSinglePdf(record, pdfFile);
+            System.out.println("已生成PDF账单: " + pdfFile.getAbsolutePath());
+
+            // 2. 发送邮件（行级容错：失败只影响单个客户，可由上层汇总到 error_report）
+            boolean success = emailService.sendStatementEmail(record, pdfFile);
+            if (!success) {
+                // 这里不抛出异常，中断整个批次，而是由上层编排将失败信息收集到错误报告
+                System.err.println("发送账单邮件失败，账号: " + record.getAccountNumber()
+                        + "，邮箱: " + record.getEmail());
+            }
         }
     }
 
