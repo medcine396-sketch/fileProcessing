@@ -183,21 +183,50 @@ public class PdfGeneratorService {
                 contentStream.stroke();
                 yPosition -= 30;
 
-                // 额度信息
+                // 收支 & 余额信息
                 contentStream.beginText();
                 contentStream.setFont(fontBold, normalFontSize + 2);
                 contentStream.newLineAtOffset(margin, yPosition);
-                contentStream.showText(fonts.unicode ? "账单额度: " : "Amount Due: ");
+                contentStream.showText(fonts.unicode ? "账单信息: " : "Statement Info: ");
                 contentStream.endText();
-                
-                String amountText = record.getBalance() != null ? record.getBalance() : "0.00";
+
+                yPosition -= 30;
+
+                // 本期收支
+                if (record.getTransactionAmount() != null && !record.getTransactionAmount().isEmpty()) {
+                    String txnText = record.getTransactionAmount();
+                    if (record.getCurrency() != null && !record.getCurrency().isEmpty()) {
+                        txnText = txnText + " " + record.getCurrency();
+                    }
+                    contentStream.beginText();
+                    contentStream.setFont(fontRegular, normalFontSize);
+                    contentStream.newLineAtOffset(margin, yPosition);
+                    contentStream.showText(fonts.unicode ? "本期收支: " : "Transaction: ");
+                    contentStream.endText();
+
+                    contentStream.beginText();
+                    contentStream.setFont(fontRegular, normalFontSize);
+                    contentStream.newLineAtOffset(margin + 100, yPosition);
+                    contentStream.showText(safeText(txnText, fonts.unicode));
+                    contentStream.endText();
+                    yPosition -= lineHeight;
+                }
+
+                // 当前余额
+                String balanceText = record.getBalance() != null ? record.getBalance() : "0.00";
                 if (record.getCurrency() != null && !record.getCurrency().isEmpty()) {
-                    amountText = amountText + " " + record.getCurrency();
+                    balanceText = balanceText + " " + record.getCurrency();
                 }
                 contentStream.beginText();
-                contentStream.setFont(fontBold, normalFontSize + 2);
+                contentStream.setFont(fontRegular, normalFontSize);
+                contentStream.newLineAtOffset(margin, yPosition);
+                contentStream.showText(fonts.unicode ? "当前余额: " : "Current Balance: ");
+                contentStream.endText();
+
+                contentStream.beginText();
+                contentStream.setFont(fontRegular, normalFontSize);
                 contentStream.newLineAtOffset(margin + 100, yPosition);
-                contentStream.showText(safeText(amountText, fonts.unicode));
+                contentStream.showText(safeText(balanceText, fonts.unicode));
                 contentStream.endText();
                 yPosition -= 40;
 

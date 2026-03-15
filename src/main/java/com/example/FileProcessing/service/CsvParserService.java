@@ -39,7 +39,10 @@ public class CsvParserService {
             
             // 尝试识别列名（支持中英文）
             String accountCol = findColumn(headers, "账号", "account", "accountNumber", "account_number");
-            String balanceCol = findColumn(headers, "额度", "balance", "amount", "金额");
+            // 收支情况（本期收入/支出，可能为正数或负数）
+            String txnCol = findColumn(headers, "收支情况", "transaction", "txnAmount", "delta");
+            // 余额（当前余额）
+            String balanceCol = findColumn(headers, "余额", "balance", "amount", "金额");
             String currencyCol = findColumn(headers, "币种", "currency", "ccy", "curr");
             String emailCol = findColumn(headers, "邮箱", "email", "e-mail");
             String nameCol = findColumn(headers, "姓名", "name", "customerName", "客户姓名");
@@ -51,6 +54,9 @@ public class CsvParserService {
                 
                 if (accountCol != null && record.isSet(accountCol)) {
                     customer.setAccountNumber(safeTrim(record.get(accountCol)));
+                }
+                if (txnCol != null && record.isSet(txnCol)) {
+                    customer.setTransactionAmount(normalizeAmount(record.get(txnCol)));
                 }
                 if (balanceCol != null && record.isSet(balanceCol)) {
                     customer.setBalance(normalizeAmount(record.get(balanceCol)));

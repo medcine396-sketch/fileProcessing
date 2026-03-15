@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -23,7 +24,7 @@ public class BatchProcessorService {
     private CsvParserService csvParserService;
 
     @Autowired
-    private PdfGeneratorService pdfGeneratorService;
+    private StatementRecordService statementRecordService;
 
     // 跟踪已处理的文件
     private final Set<String> processedFiles = ConcurrentHashMap.newKeySet();
@@ -56,7 +57,7 @@ public class BatchProcessorService {
             try {
                 List<CustomerRecord> allRecords = new ArrayList<>();
 
-                // 解析所有CSV文件
+                // 解析所有CSV文件（从 CSV 中读取账号、姓名、额度、币种、邮箱、账单日期等信息）
                 for (File csvFile : csvFiles) {
                     try {
                         List<CustomerRecord> records = csvParserService.parseCsvFile(csvFile);
@@ -70,10 +71,10 @@ public class BatchProcessorService {
                     }
                 }
 
-                // 生成PDF账单
+                // 仅将解析结果写入 H2，由后续结算任务统一生成 PDF + 邮件
                 if (!allRecords.isEmpty()) {
-                    pdfGeneratorService.generatePdfBills(allRecords, batchId);
-                    System.out.println("批处理完成，共生成 " + allRecords.size() + " 个PDF账单");
+                    statementRecordService.saveRecords(allRecords);
+                    System.out.println("批处理完成，本批共写入中间库记录数: " + allRecords.size());
                 } else {
                     System.out.println("批处理完成，但没有找到有效的客户记录");
                 }

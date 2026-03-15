@@ -14,7 +14,8 @@ import jakarta.mail.internet.MimeMessage;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 邮件发送服务（负责将账单 PDF 以附件形式发送给客户）
@@ -121,21 +122,35 @@ public class EmailService {
     private String buildEmailBody(CustomerRecord record) {
         String customerName = record.getName() != null ? record.getName() : "";
         String account = record.getAccountNumber() != null ? record.getAccountNumber() : "";
-        String amount = record.getBalance() != null ? record.getBalance() : "0.00";
+        String txnAmount = record.getTransactionAmount() != null ? record.getTransactionAmount() : null;
+        String balance = record.getBalance() != null ? record.getBalance() : "0.00";
         String currency = record.getCurrency() != null ? record.getCurrency() : "";
-        String statementDate = record.getStatementDate() != null ? record.getStatementDate() : "";
+        // 账单日期：如果 CSV 未提供或为空，则默认使用当前日期（发送账单时间的日期部分）
+        String statementDate = (record.getStatementDate() != null && !record.getStatementDate().isBlank())
+                ? record.getStatementDate()
+                : LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         StringBuilder sb = new StringBuilder();
         sb.append("尊敬的客户 ").append(customerName).append("，您好！\n\n")
                 .append("附件为您账号 ").append(account).append(" 的对账单，请查收。\n")
-                .append("账单日期：").append(statementDate).append("\n")
-                .append("账单金额：").append(amount).append(" ").append(currency).append("\n\n")
+                .append("账单日期：").append(statementDate).append("\n");
+
+        if (txnAmount != null) {
+            sb.append("本期收支：").append(txnAmount).append(" ").append(currency).append("\n");
+        }
+
+        sb.append("当前余额：").append(balance).append(" ").append(currency).append("\n\n")
                 .append("本邮件由系统自动发送，请勿直接回复。如有疑问，请联系银行客服。\n\n")
                 .append("Dear Customer,\n\n")
                 .append("Please find attached your latest bank statement for account ")
                 .append(account).append(".\n")
-                .append("Statement date: ").append(statementDate).append("\n")
-                .append("Amount: ").append(amount).append(" ").append(currency).append("\n\n")
+                .append("Statement date: ").append(statementDate).append("\n");
+
+        if (txnAmount != null) {
+            sb.append("Transaction amount: ").append(txnAmount).append(" ").append(currency).append("\n");
+        }
+
+        sb.append("Current balance: ").append(balance).append(" ").append(currency).append("\n\n")
                 .append("This email is generated automatically. Please contact customer service if you have any questions.\n");
         return sb.toString();
     }

@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class DirectoryWatcher {
 
-    private final String folderPath = "C:\\Users\\Selina\\Desktop\\testPy\\inbound";
+    private final String folderPath = "C:\\Users\\Selina\\Desktop\\inbound";
 
     @Autowired
     private BatchProcessorService batchProcessorService;
@@ -22,9 +22,10 @@ public class DirectoryWatcher {
         System.out.println("Watcher tick " + LocalTime.now());
         // 只在晚上 6 点～10 点运行
         LocalTime now = LocalTime.now();
-        if (now.isBefore(LocalTime.of(9, 0)) || now.isAfter(LocalTime.of(21, 0))) {
-            return; // 不在时间段就不工作
-        }
+        //时间窗
+        // if (now.isBefore(LocalTime.of(1, 0)) || now.isAfter(LocalTime.of(21, 0))) {
+        //     return; // 不在时间段就不工作
+        // }
 
         File folder = new File(folderPath);
         if (!folder.exists() || !folder.isDirectory()) {

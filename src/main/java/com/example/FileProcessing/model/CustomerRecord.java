@@ -4,12 +4,19 @@ package com.example.FileProcessing.model;
  * 客户记录模型
  */
 public class CustomerRecord {
-    private String accountNumber;  // 账号
-    private String balance;        // 额度
-    private String currency;       // 币种（可选，但建议提供）
-    private String email;          // 邮箱
-    private String name;           // 姓名（可选）
-    private String statementDate;  // 账单日期（可选）
+    private String accountNumber;      // 账号（8位数字）
+    /**
+     * 单行收支金额（收入为正，支出为负），来自 CSV 中的“收支情况”列
+     */
+    private String transactionAmount;  // 收支情况（正数/负数）
+    /**
+     * 当前余额，来自 CSV 中的“余额”列
+     */
+    private String balance;            // 余额
+    private String currency;           // 币种（ISO 4217）
+    private String email;              // 邮箱
+    private String name;               // 姓名（可选，中英文均可）
+    private String statementDate;      // 账单日期（可选）
 
     public CustomerRecord() {
     }
@@ -35,6 +42,14 @@ public class CustomerRecord {
 
     public void setBalance(String balance) {
         this.balance = balance;
+    }
+
+    public String getTransactionAmount() {
+        return transactionAmount;
+    }
+
+    public void setTransactionAmount(String transactionAmount) {
+        this.transactionAmount = transactionAmount;
     }
 
     public String getEmail() {
